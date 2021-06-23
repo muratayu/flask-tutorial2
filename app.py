@@ -13,32 +13,60 @@ FORECAST_API = 'https://api.openweathermap.org/data/2.5/forecast'
 
 app = Flask(__name__)
 
-@app.route('/forecast')
+@app.route('/forecast', methods=["GET", "POST"])
 def forecast():
-    params = {
-        'appid' : API_KEY,
-        'q' : 'Tokyo',
-        'units' : 'metric'
-    }
-    url = FORECAST_API + '?' + urllib.parse.urlencode(params)
-    req = urllib.request.Request(url)
-    res = urllib.request.urlopen(req)
-    result = res.read().decode('utf-8')    
-    res.close()
+    if request.method == 'GET':
+        params = {
+            'appid' : API_KEY,
+            'q' : 'Tokyo',
+            'units' : 'metric'
+        }
+        url = FORECAST_API + '?' + urllib.parse.urlencode(params)
+        req = urllib.request.Request(url)
+        res = urllib.request.urlopen(req)
+        result = res.read().decode('utf-8')    
+        res.close()
 
-    json_body = json.loads(result)
+        json_body = json.loads(result)
     
-    forecasts = []
-    for api_data in json_body["list"]:
-        forecasts.append({
-            "time": api_data["dt_txt"],
-            "temp": api_data["main"]["temp"],
-            "humidity": api_data["main"]["humidity"],
-            "pressure": api_data["main"]["pressure"],
-            "icon": api_data["weather"][0]["icon"],
-        })
+        forecasts = []
+        for api_data in json_body["list"]:
+            forecasts.append({
+                "time": api_data["dt_txt"],
+                "temp": api_data["main"]["temp"],
+                "humidity": api_data["main"]["humidity"],
+                "pressure": api_data["main"]["pressure"],
+                "icon": api_data["weather"][0]["icon"],
+            })
 
-    return render_template("forecast.html", forecasts=forecasts)
+        return render_template("forecast.html", forecasts=forecasts)
+    
+    else:
+        postedComment = request.form["place"]
+        params = {
+            'appid' : API_KEY,
+            'q' : postedComment,
+            'units' : 'metric'
+        }
+        url = FORECAST_API + '?' + urllib.parse.urlencode(params)
+        req = urllib.request.Request(url)
+        res = urllib.request.urlopen(req)
+        result = res.read().decode('utf-8')    
+        res.close()
+
+        json_body = json.loads(result)
+    
+        forecasts = []
+        for api_data in json_body["list"]:
+            forecasts.append({
+                "time": api_data["dt_txt"],
+                "temp": api_data["main"]["temp"],
+                "humidity": api_data["main"]["humidity"],
+                "pressure": api_data["main"]["pressure"],
+                "icon": api_data["weather"][0]["icon"],
+            })
+
+        return render_template("forecast.html", forecasts=forecasts)
 
 @app.route('/')
 def hello():
